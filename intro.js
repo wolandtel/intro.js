@@ -28,7 +28,6 @@
    */
   function IntroJs(obj) {
     this._targetElement = obj;
-    this._introItems = [];
 
     this._options = {
       /* Next button label in tooltip box */
@@ -73,19 +72,22 @@
       hintButtonLabel: 'Got it'
     };
   }
-
+  
   /**
-   * Initiate a new introduction/guide from an element in the page
+   * Initialize introduction steps
    *
    * @api private
-   * @method _introForElement
-   * @param {Object} targetElm
-   * @returns {Boolean} Success or not?
+   * @method _initSteps
+   * @param
+   * @returns
    */
-  function _introForElement(targetElm) {
+  function _initSteps () {
     var introItems = [],
         self = this;
-
+    
+    if (typeof(self._introItems) !== 'undefined')
+      return;
+    
     if (this._options.steps) {
       //use steps passed programmatically
       for (var i = 0, stepsLength = this._options.steps.length; i < stepsLength; i++) {
@@ -192,7 +194,19 @@
 
     //set it to the introJs object
     self._introItems = introItems;
-
+  }
+  
+  /**
+   * Initiate a new introduction/guide from an element in the page
+   *
+   * @api private
+   * @method _introForElement
+   * @param {Object} targetElm
+   * @returns {Boolean} Success or not?
+   */
+  function _introForElement(targetElm) {
+    var self = this;
+    
     //add overlay layer to the page
     if(_addOverlayLayer.call(self, targetElm)) {
       //then, start the show
@@ -292,12 +306,14 @@
    * @api private
    * @method _goToStep
    */
-  function _goToStep(step) {
+  function _goToStep(step, zeroBased) {
     //because steps starts with zero
-    this._currentStep = step - 2;
-    if (typeof (this._introItems) !== 'undefined') {
-      _nextStep.call(this);
-    }
+    if (zeroBased)
+      this._currentStep = step - 1;
+    else
+      this._currentStep = step - 2;
+    
+    _nextStep.call(this);
   }
 
   /**
@@ -1602,18 +1618,22 @@
       return this;
     },
     start: function () {
+      _initSteps.call(this);
       _introForElement.call(this, this._targetElement);
       return this;
     },
     goToStep: function(step) {
+      _initSteps.call(this);
       _goToStep.call(this, step);
       return this;
     },
     nextStep: function() {
+      _initSteps.call(this);
       _nextStep.call(this);
       return this;
     },
     previousStep: function() {
+      _initSteps.call(this);
       _previousStep.call(this);
       return this;
     },
@@ -1622,6 +1642,7 @@
       return this;
     },
     refresh: function() {
+      _initSteps.call(this);
       // re-align intros
       _setHelperLayerPosition.call(this, document.querySelector('.introjs-helperLayer'));
       _setHelperLayerPosition.call(this, document.querySelector('.introjs-tooltipReferenceLayer'));
